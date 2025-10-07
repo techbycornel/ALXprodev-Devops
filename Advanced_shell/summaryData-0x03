@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Directory containing JSON files
+DATA_DIR="pokemon_data"
+REPORT_FILE="pokemon_report.csv"
+
+# Check if data directory exists
+if [ ! -d "$DATA_DIR" ]; then
+  echo "Error: pokemon_data directory not found!"
+  exit 1
+fi
+
+# Start CSV file with header
+echo "Name,Height (m),Weight (kg)" > "$REPORT_FILE"
+
+# Loop through all JSON files and extract info using jq
+for file in "$DATA_DIR"/*.json; do
+  name=$(jq -r '.name' "$file" | sed 's/.*/\u&/')  # Capitalize first letter
+  height=$(jq -r '.height' "$file")
+  weight=$(jq -r '.weight' "$file")
+
+  # Convert height (decimeters to meters) and weight (hectograms to kilograms)
+  height_m=$(awk "BEGIN {printf \"%.1f\", $height / 10}")
+  weight_kg=$(awk "BEGIN {printf \"%.1f\", $weight / 10}")
+
+  echo "${name},${height_m},${weight_kg}" >> "$REPORT_FILE"
+done
+
+echo ""
+echo "CSV Report generated at: ${REPORT_FILE}"
+echo ""
+
+# Display CSV content
+cat "$REPORT_FILE"
+echo ""
+
+# Calculate averages using awk
+awk -F, 'NR>1 {h+=$2; w+=$3; n++} 
+END {printf "\nAverage Height: %.2f m\nAverage Weight: %.2f kg\n", h/n, w/n}' "$REPORT_FILE"
