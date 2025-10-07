@@ -26,4 +26,5 @@ name=$(echo "$name" | sed 's/.*/\u&/')
 type=$(echo "$type" | sed 's/.*/\u&/')
 
 # Display the formatted output
-echo "$name is of type $type, weighs ${weight_kg}kg, and is ${height_m}m tall."
+echo "$name is of type $type, weighs ${formatted_weight}kg, and is ${formatted_height}m tall."
+
