@@ -1,0 +1,34 @@
+#!/bin/bash
+
+DATA_DIR="pokemon_data_parallel"
+ERROR_FILE="errors_parallel.txt"
+
+POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
+
+mkdir -p "$DATA_DIR"
+> "$ERROR_FILE"
+
+fetch_pokemon() {
+  pokemon=$1
+  echo "Fetching data for $pokemon..."
+
+  response=$(curl -s -w "%{http_code}" -o "${DATA_DIR}/${pokemon}.json" "https://pokeapi.co/api/v2/pokemon/${pokemon}")
+
+  if [ "$response" -eq 200 ]; then
+    echo "Saved data to ${DATA_DIR}/${pokemon}.json ✅"
+  else
+    echo "❌ Failed to fetch data for $pokemon (HTTP $response)" >> "$ERROR_FILE"
+  fi
+}
+
+# Run all fetches in parallel
+for pokemon in "${POKEMONS[@]}"; do
+  fetch_pokemon "$pokemon" &
+done
+
+# Wait for all background jobs
+wait
+
+echo ""
+echo "✅ All parallel fetches completed."
+echo "Check $ERROR_FILE for any errors."
