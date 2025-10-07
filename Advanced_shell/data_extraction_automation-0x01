@@ -1,0 +1,29 @@
+#!/bin/bash
+# Script: data_extraction_automation-0x01
+# Objective: Extract Pikachu's name, height, weight, and type from data.json
+
+# Input file from previous task
+INPUT_FILE="data.json"
+
+# Check if the JSON file exists
+if [ ! -f "$INPUT_FILE" ]; then
+  echo "Error: $INPUT_FILE not found! Run Task 0 first."
+  exit 1
+fi
+
+# Extract data using jq
+name=$(jq -r '.name' "$INPUT_FILE")
+height=$(jq -r '.height' "$INPUT_FILE")
+weight=$(jq -r '.weight' "$INPUT_FILE")
+type=$(jq -r '.types[0].type.name' "$INPUT_FILE")
+
+# Convert height (decimetres → metres) and weight (hectograms → kilograms)
+height_m=$(awk "BEGIN {printf \"%.1f\", $height/10}")
+weight_kg=$(awk "BEGIN {printf \"%.1f\", $weight/10}")
+
+# Capitalize the first letter of name and type using sed
+name=$(echo "$name" | sed 's/.*/\u&/')
+type=$(echo "$type" | sed 's/.*/\u&/')
+
+# Display the formatted output
+echo "$name is of type $type, weighs ${weight_kg}kg, and is ${height_m}m tall."
