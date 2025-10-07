@@ -8,6 +8,7 @@ POKEMONS=("bulbasaur" "ivysaur" "venusaur" "charmander" "charmeleon")
 mkdir -p "$DATA_DIR"
 > "$ERROR_FILE"
 
+# Function to fetch a single Pokémon
 fetch_pokemon() {
   pokemon=$1
   echo "Fetching data for $pokemon..."
@@ -21,14 +22,24 @@ fetch_pokemon() {
   fi
 }
 
-# Run all fetches in parallel
+# Array to track background PIDs
+pids=()
+
+# Start all background jobs
 for pokemon in "${POKEMONS[@]}"; do
   fetch_pokemon "$pokemon" &
+  pids+=($!)  # Store each PID
 done
 
 # Wait for all background jobs
-wait
+for pid in "${pids[@]}"; do
+  if wait "$pid"; then
+    echo "Process $pid completed successfully."
+  else
+    echo "Process $pid failed. Terminating..."
+    kill "$pid" 2>/dev/null
+  fi
+done
 
 echo ""
-echo "✅ All parallel fetches completed."
-echo "Check $ERROR_FILE for any errors."
+echo "✅ All parallel fetches completed. Check $ERROR_FILE for any errors."
